@@ -15,6 +15,7 @@
     "eslint": "eslint test/test.js"
   },
   "files": [
+    "index.js",
     "FactSignerExample.sol:FactSignerExample",
     "FactSignerExample.sol",
     "LICENSE",

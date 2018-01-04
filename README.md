@@ -1,11 +1,12 @@
-FactSigner Example
-==================
+FactSigner Utilities
+====================
 
 [![Travis CI](https://travis-ci.org/berlincode/factsigner.svg?branch=master&style=flat)](https://travis-ci.org/berlincode/factsigner)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/berlincode/factsigner/blob/master/LICENSE)
 
-This repository contains an example how to use the FactSigner.com signing
-authority with an Ethereum Contract written in Solidity.
+This repository contains an javascript helper function for use with the FactSigner.com signing
+authority. Additionally an example [Ethereum](https://www.ethereum.org/) contract written in Solidity is included to show 
+the usage on the blockchain.
 
 Public repository
 -----------------
