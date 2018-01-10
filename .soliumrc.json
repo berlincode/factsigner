@@ -1,20 +1,9 @@
 {
-  "custom-rules-filename": null,
+  "extends": "solium:all",
   "rules": {
-    "imports-on-top": true,
-    "variable-declarations": true,
-    "array-declarations": true,
-    "operator-whitespace": false,
-    "lbrace": true,
-    "mixedcase": true,
-    "camelcase": true,
-    "uppercase": true,
-    "no-with": true,
-    "no-empty-blocks": true,
-    "no-unused-vars": true,
-    "double-quotes": true,
-    "blank-lines": true,
-    "indentation": true,
-    "whitespace": true
+    "imports-on-top": 1,
+    "variable-declarations": 1,
+    "indentation": ["error", 4],
+    "quotes": ["error", "double"]
   }
 }

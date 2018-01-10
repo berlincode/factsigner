@@ -2,10 +2,10 @@
 /* eslint-env mocha */
 var factsigner = require('../index.js');
 var Web3 = require('web3');
+var web3_utils = require('web3-utils');
 var assert = require('assert');
-var TestRPC = require('ethereumjs-testrpc');
+var TestRPC = require('ganache-cli'); // was 'ethereumjs-testrpc'
 var fs = require('fs');
-var BigNumber = require('bignumber.js'); // use web3.utils.BN on web3. 1.0
 
 var logger = {
   log: function(/*message*/) {
@@ -25,7 +25,6 @@ var contract_bytecode = fs.readFileSync(
 );
 
 var web3;
-var contract;
 var account_sign, account_default;
 
 function setup(done){
@@ -41,8 +40,6 @@ function setup(done){
   };
 
   web3.setProvider(TestRPC.provider(options));
-
-  contract = web3.eth.contract(contract_interface);
 
   web3.eth.getAccounts(function(err, accounts) {
     assert.equal(err, null);
@@ -65,8 +62,8 @@ describe('Test1', function() {
   };
 
   var factHash;
-  var signature_expire;
-  var value = new BigNumber('0x9d140d4cd91b0000'); //11.3186863872
+  var signature_settlement;
+  var value = web3_utils.toBN('0x9d140d4cd91b0000'); //11.3186863872
   var contractInstance;
 
   before('Setup', function(done) {
@@ -77,7 +74,7 @@ describe('Test1', function() {
 
     it('calculate factHash', function(done) {
 
-      factHash = factsigner.factHash(web3, marketDict);
+      factHash = factsigner.factHash(web3_utils, marketDict);
 
       assert.equal(factHash, '0x03810f608753d91f1b531dec8ee3fb2d3fefec0a8c1290da483bef39a6aa7eed');
 
@@ -92,41 +89,60 @@ describe('Test1', function() {
           sig.r,
           sig.s
         ];
-        contract.new(
-          marketDict.baseUnitExp,
-          '0x' + factsigner.stringToHex(marketDict.name, 32),
-          marketDict.ndigit,
-          marketDict.objectionPeriod,
-          marketDict.settlement,
-          signature,
-          account_sign,
+
+        var contract = new web3.eth.Contract(contract_interface);
+        contract.deploy(
           {
-            from: account_default,
             data: contract_bytecode,
-            gas: 4000000
-          },
-          function(err, contr){
-            assert.equal(err, null);
-            assert(typeof(contr) !== 'undefined');
-            if(contr.address) {
-              // there are two callbacks here - we check for address on the second call (contract deployed)
-              contractInstance = contr;
-              done();
-            }
+            arguments: [
+              marketDict.baseUnitExp,
+              '0x' + factsigner.stringToHex(marketDict.name, 32),
+              marketDict.ndigit,
+              marketDict.objectionPeriod,
+              marketDict.settlement,
+              signature,
+              account_sign
+            ]
           }
-        );
+        ).send(
+          {
+            gas: 4000000,
+            gasPrice: '30000000000000',
+            //value: 0,
+            from: account_default
+          }
+        ).on('error', function(error){  
+          //console.log("error", error);
+          assert.equal(error, null);
+          done();
+        }).on('confirmation', function(confirmationNumber, receipt){
+          //console.log(receipt);
+          assert.notEqual(receipt, undefined);
+          contractInstance = new web3.eth.Contract(contract_interface, receipt.contractAddress);
+          done();
+        });
+      });
+    });
+
+    it('Check that no settlement was done', function(done) {
+      contractInstance.methods.settled().call(function(err, result) {
+        /* check if really expired */
+        assert.equal(err, null);
+        /* the contract should not be settled */
+        assert.equal(result, false);
+
+        done();
       });
     });
 
     it('Calculate settlement signature', function(done) {
-      var condensed = factHash.replace(/^0x/, '') + factsigner.toHex(value, 32);
-      var hash = web3.sha3(
-        condensed,
-        {encoding: 'hex'}
+      var hash = web3_utils.soliditySha3(
+        {t: 'bytes32', v: factHash},
+        {t: 'bytes32', v: '0x' + factsigner.toHex(value, 32)}
       );
       factsigner.sign(web3, account_sign, hash.replace(/^0x/, ''), function(err, sig) {
         assert.equal(err, null);
-        signature_expire = [
+        signature_settlement = [
           '0x' + factsigner.toHex(sig.v, 32), // convert to byte32
           sig.r,
           sig.s
@@ -135,27 +151,34 @@ describe('Test1', function() {
       });
     });
 
-    it('Settlement', function(done) {
-      contractInstance.settlement(
+    it('Settle', function(done) {
+      contractInstance.methods.settle(
         '0x' + factsigner.toHex(value, 32),
-        signature_expire,
+        signature_settlement
+      ).send(
         {
           gas: 300000,
-          value: 0,
+          gasPrice: '30000000000000',
+          //value: 0,
           from: account_default
-        }, function(err, result) {
+        }
+      ).on('error', function(error){  
+        //console.log("error", error);
+        assert.equal(error, null);
+        done();
+      }
+      ).on('confirmation', function(confirmationNumber, receipt){
+        assert.notEqual(receipt, undefined);
+
+        contractInstance.methods.settled().call(function(err, result) {
+          /* check if really expired */
           assert.equal(err, null);
-          assert.notEqual(result, undefined);
+          /* now the contract should be settled */
+          assert.equal(result, true);
 
-          contractInstance.settled(function(err, result) {
-            /* check if really expired */
-            assert.equal(err, null);
-            /* now the contract should be settled */
-            assert.equal(result, true);
-
-            done();
-          });
+          done();
         });
+      });
     });
 
   });

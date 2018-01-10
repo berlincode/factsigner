@@ -8,7 +8,7 @@
   } else if (typeof module !== 'undefined' && module.exports) {
     // CommonJS (node and other environments that support module.exports)
     module.exports = factory(
-      require('bignumber.js') // use web3.utils.BN on web3. 1.0
+      require('web3-utils')
     );
   }else {
     // Global (browser)
@@ -16,21 +16,22 @@
       // TODO BigNumber
     );
   }
-}(this, function (BigNumber) {
+}(this, function (web3_utils) {
 
   var toHex = function toHex(dec, bytes) {
     var length = bytes * 8;
     var digits = bytes * 2;
     var hex_string;
     if (dec < 0) {
-      hex_string = (new BigNumber(2)).pow(length).add(new BigNumber(dec)).toString(16);
+      hex_string = (web3_utils.toBN(2)).pow(length).add(web3_utils.toBN(dec)).toString(16);
     } else {
-      hex_string = new BigNumber(dec).toString(16);
+      hex_string = web3_utils.toBN(dec).toString(16);
     }
     var zero = digits - hex_string.length + 1;
     return Array(+(zero > 0 && zero)).join('0') + hex_string;
   };
 
+  // use web3.utils.utf8ToHex?
   var stringToHex = function(str, bytes){
     var digits = bytes * 2;
     var hex_string = '';
@@ -45,12 +46,12 @@
     return hex_string + Array(+(zero > 0 && zero)).join('0');
   };
 
-  var sign = function sign(web3, address, value, callback) {
-    web3.eth.sign(address, '0x' + value, function(err, sig) {
+  var sign = function(web3, address, value, callback) {
+    web3.eth.sign('0x' + value, address, function(err, sig) {
       if (!err) {
         var r = sig.slice(0, 66);
         var s = '0x' + sig.slice(66, 130);
-        var v = web3.toDecimal('0x' + sig.slice(130, 132));
+        var v = parseInt(sig.slice(130, 132), 16);
         if ((v !== 27) && (v !== 28)) v+=27;
         callback(undefined, {r: r, s: s, v: v});
       } else {
@@ -59,15 +60,13 @@
     });
   };
 
-  function factHash(web3, marketDict){
-    return web3.sha3(
-      // sorted alphabetically by key name interface name
-      toHex(marketDict.baseUnitExp, 1) +
-      stringToHex(marketDict.name, 32) +
-      toHex(marketDict.ndigit, 1) +
-      toHex(marketDict.objectionPeriod, 4) +
-      toHex(marketDict.settlement, 8), // settlement
-      {encoding: 'hex'}
+  function factHash(web3_utils, marketDict){
+    return web3_utils.soliditySha3(
+      {t: 'uint8', v: marketDict.baseUnitExp},
+      {t: 'bytes32', v: stringToHex(marketDict.name, 32)},
+      {t: 'int8', v: marketDict.ndigit},
+      {t: 'uint32', v: marketDict.objectionPeriod},
+      {t: 'uint64', v: marketDict.settlement}
     );
   }
 

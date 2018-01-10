@@ -1,7 +1,7 @@
 {
   "name": "factsigner",
-  "version": "0.1.0",
-  "description": "Solidity factsigner.com example ethereum contract",
+  "version": "1.0.0",
+  "description": "Solidity factsigner.com helper functions and example ethereum contract",
   "homepage": "https://www.factsigner.com",
   "license": "MIT",
   "author": {
@@ -12,12 +12,13 @@
     "compile": "solcjs --optimize --bin --abi FactSignerExample.sol",
     "solium": "solium --file FactSignerExample.sol",
     "test": "mocha",
-    "eslint": "eslint test/test.js"
+    "eslint": "eslint *.js test/*.js"
   },
   "files": [
-    "index.js",
-    "FactSignerExample.sol:FactSignerExample",
     "FactSignerExample.sol",
+    "FactSignerExample_sol_FactSignerExample.abi",
+    "FactSignerExample_sol_FactSignerExample.bin",
+    "index.js",
     "LICENSE",
     "README"
   ],
@@ -31,13 +32,15 @@
     "smart contract",
     "ethereum"
   ],
+  "dependencies": {
+    "web3-utils": "^1.0.0-beta.27"
+  },
   "devDependencies": {
-    "solc": "^0.4.14",
-    "solium": "^0.5.3",
-    "bip39": "2.3.0",
-    "ethereumjs-testrpc": "^2.2.7",
+    "solc": "^0.4.19",
+    "solium": "^1.1.2",
+    "ganache-cli": "^6.0.3",
     "mocha": "^3.4.2",
-    "web3": "^0.20.0",
+    "web3": "^1.0.0-beta.27",
     "eslint": "4.3.0"
   }
 }

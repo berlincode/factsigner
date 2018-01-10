@@ -1,10 +1,10 @@
 /*
  Contract example for https://www.factsigner.com
 
- Version 0.1.0
+ Version 1.0.0
 */
 
-pragma solidity ^0.4.14;
+pragma solidity ^0.4.19;
 
 
 contract FactSignerExample {
@@ -36,7 +36,8 @@ contract FactSignerExample {
         uint64 settlement,
         bytes32[3] signature, /* array containing signature elements [v, r, s] */
         address ethAddr
-    ) {
+    ) public
+    {
         bytes32 factHash = calcFactHash(
             baseUnitExp,
             name,
@@ -46,11 +47,9 @@ contract FactSignerExample {
         );
 
         require(
-            ecrecover(
+            verify(
                 factHash,
-                uint8(signature[0]),
-                signature[1],
-                signature[2]
+                signature
             ) == ethAddr
         );
 
@@ -61,38 +60,21 @@ contract FactSignerExample {
         baseData.objectionPeriond = objectionPeriond;
         baseData.settlement = settlement;
 
-        /* address of signing authority (i.e. factsigner.com */
+        /* address of signing authority (i.e. factsigner.com) */
         baseData.ethAddr = ethAddr;
     }
 
-    function calcFactHash (
-        uint8 baseUnitExp,
-        bytes32 name,
-        int8 ndigit,
-        uint32 objectionPeriond,
-        uint64 settlement
-    ) internal constant returns (bytes32)
-    {
-        return sha3(
-            /* sorted alphabetically */
-            baseUnitExp, /* 'base_unit_exp' = 18 -> base_unit = 10**18 = 1000000000000000000 */
-            name, /* 'name' ascii encoded string as bytes32 - unused bytes are filled with \0 */
-            ndigit, /* 'ndigit' number of digits (may be negative) */
-            objectionPeriond, /* 'objection_period' 3600 seconds */
-            settlement /* 'settlement' unix epoch seconds UTC */
-        );
-    }
-
-    function settlement (
+    function settle (
         bytes32 value,
         bytes32[3] signature /* array containing signature elements [v, r, s] */
-    ) {
+    ) public
+    {
         if (settled == true)
             return;
 
         if (
-            ecrecover(
-                sha3(
+            verify(
+                keccak256(
                     calcFactHash(
                         baseData.baseUnitExp,
                         baseData.name,
@@ -102,14 +84,48 @@ contract FactSignerExample {
                     ),
                     value
                 ),
-                uint8(signature[0]),
-                signature[1],
-                signature[2]
+                signature
             ) == baseData.ethAddr
         ) {
             /* DO SOMETHING HERE using the validated parameter 'value' */
             settled = true;
         }
+    }
+
+    /* internal functions */
+
+    function verify(
+        bytes32 _message,
+        bytes32[3] signature
+    ) pure internal returns (address)
+    {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        bytes32 prefixedHash = keccak256(prefix, _message);
+        address signer = ecrecover(
+            prefixedHash,
+            uint8(signature[0]),
+            signature[1],
+            signature[2]
+        );
+        return signer;
+    }
+
+    function calcFactHash (
+        uint8 baseUnitExp,
+        bytes32 name,
+        int8 ndigit,
+        uint32 objectionPeriond,
+        uint64 settlement
+    ) pure internal returns (bytes32)
+    {
+        return keccak256(
+            /* sorted alphabetically */
+            baseUnitExp, /* 'base_unit_exp' = 18 -> base_unit = 10**18 = 1000000000000000000 */
+            name, /* 'name' ascii encoded string as bytes32 - unused bytes are filled with \0 */
+            ndigit, /* 'ndigit' number of digits (may be negative) */
+            objectionPeriond, /* 'objection_period' 3600 seconds */
+            settlement /* 'settlement' unix epoch seconds UTC */
+        );
     }
 
 }
