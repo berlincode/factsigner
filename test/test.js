@@ -112,13 +112,19 @@ describe('Test1', function() {
             from: account_default
           }
         ).on('error', function(error){  
-          //console.log("error", error);
+          //console.log('error', error);
           assert.equal(error, null);
           done();
+        }).on('transactionHash', function(/*transactionHash*/){
+          //console.log('transactionHash', transactionHash);
+        }).on('receipt', function(/*receipt*/){
+          //console.log('receipt.contractAddress', receipt.contractAddress) // contains the new contract address
         }).on('confirmation', function(confirmationNumber, receipt){
-          //console.log(receipt);
+          //console.log('confirmation receipt', receipt);
           assert.notEqual(receipt, undefined);
-          contractInstance = new web3.eth.Contract(contract_interface, receipt.contractAddress);
+        }).then(function(newContractInstance){
+          assert.notEqual(newContractInstance.options.address, undefined);
+          contractInstance = newContractInstance;
           done();
         });
       });
@@ -163,12 +169,14 @@ describe('Test1', function() {
           from: account_default
         }
       ).on('error', function(error){  
-        //console.log("error", error);
+        //console.log('error', error);
         assert.equal(error, null);
         done();
       }
       ).on('confirmation', function(confirmationNumber, receipt){
         assert.notEqual(receipt, undefined);
+      }).then(function(transaction){
+        assert.notEqual(transaction, undefined);
 
         contractInstance.methods.settled().call(function(err, result) {
           /* check if really expired */

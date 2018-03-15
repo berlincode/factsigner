@@ -1,10 +1,10 @@
 /*
  Contract example for https://www.factsigner.com
 
- Version 1.0.0
+ Version 1.0.1
 */
 
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.21;
 
 
 contract FactSignerExample {
