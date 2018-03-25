@@ -4,7 +4,7 @@ var factsigner = require('../index.js');
 var Web3 = require('web3');
 var web3_utils = require('web3-utils');
 var assert = require('assert');
-var TestRPC = require('ganache-cli'); // was 'ethereumjs-testrpc'
+var TestRPC = require('ganache-core'); // was 'ethereumjs-testrpc'
 var fs = require('fs');
 
 var logger = {
@@ -74,7 +74,7 @@ describe('Test1', function() {
 
     it('calculate factHash', function(done) {
 
-      factHash = factsigner.factHash(web3_utils, marketDict);
+      factHash = factsigner.factHash(marketDict);
 
       assert.equal(factHash, '0x03810f608753d91f1b531dec8ee3fb2d3fefec0a8c1290da483bef39a6aa7eed');
 
@@ -82,13 +82,8 @@ describe('Test1', function() {
     });
 
     it('Contract create', function(done) {
-      factsigner.sign(web3, account_sign, factHash.replace(/^0x/, ''), function(err, sig) {
+      factsigner.sign(web3, account_sign, factHash, function(err, sig) {
         assert.equal(err, null);
-        var signature = [
-          '0x' + factsigner.toHex(sig.v, 32), // convert to byte32
-          sig.r,
-          sig.s
-        ];
 
         var contract = new web3.eth.Contract(contract_interface);
         contract.deploy(
@@ -96,11 +91,11 @@ describe('Test1', function() {
             data: contract_bytecode,
             arguments: [
               marketDict.baseUnitExp,
-              '0x' + factsigner.stringToHex(marketDict.name, 32),
+              factsigner.stringToHex(marketDict.name, 32),
               marketDict.ndigit,
               marketDict.objectionPeriod,
               marketDict.settlement,
-              signature,
+              factsigner.sigToBytes32(sig),
               account_sign
             ]
           }
@@ -144,22 +139,18 @@ describe('Test1', function() {
     it('Calculate settlement signature', function(done) {
       var hash = web3_utils.soliditySha3(
         {t: 'bytes32', v: factHash},
-        {t: 'bytes32', v: '0x' + factsigner.toHex(value, 32)}
+        {t: 'bytes32', v: factsigner.toHex(value, 32)}
       );
-      factsigner.sign(web3, account_sign, hash.replace(/^0x/, ''), function(err, sig) {
+      factsigner.sign(web3, account_sign, hash, function(err, sig) {
         assert.equal(err, null);
-        signature_settlement = [
-          '0x' + factsigner.toHex(sig.v, 32), // convert to byte32
-          sig.r,
-          sig.s
-        ];
+        signature_settlement = factsigner.sigToBytes32(sig); // convert to byte32
         done();
       });
     });
 
     it('Settle', function(done) {
       contractInstance.methods.settle(
-        '0x' + factsigner.toHex(value, 32),
+        factsigner.toHex(value, 32),
         signature_settlement
       ).send(
         {
