@@ -29,11 +29,20 @@
 }(this, function (web3_utils) {
 
   function toUnitString(bn, base_unit_exp, ndigit) {
+    // no flooring/rounding/ceiling - just stripping digits
     var unitDivisor =  web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp-ndigit));
     if (ndigit > 0)
     {
       var str = bn.div(unitDivisor).toString();
-      return str.substring(0, str.length-ndigit) + '.' + str.substring(str.length-ndigit);
+      var sign = '';
+      if (str[0] === '-'){
+        str = str.substring(1);
+        sign = '-';
+      }
+      // add preceeding '0's - we need at least a total of (ndigit + 1) digits
+      // e.g. '01' for ndigit == 2 so that after inserting a '0' we finally have '0.1'
+      str = Array(+((ndigit + 2 > str.length) && (ndigit + 2 - str.length))).join('0') + str;
+      return sign + str.substring(0, str.length-ndigit) + '.' + str.substring(str.length-ndigit);
     }
     var unitMultiplier =  web3_utils.toBN('10').pow(web3_utils.toBN(-ndigit));
     return bn.div(unitDivisor).mul(unitMultiplier).toString();
@@ -53,19 +62,8 @@
     return '0x' + Array(+(zero > 0 && zero)).join('0') + hex_string;
   };
 
-  // use web3.utils.asciiToHex()?
   var stringToHex = function(str, bytes){
-    var digits = bytes * 2;
-    var hex_string = '';
-    var hex, i;
-
-    for (i=0; i<str.length; i++) {
-      hex = str.charCodeAt(i).toString(16);
-      hex_string += ('0'+hex).slice(-2);
-    }
-
-    var zero = digits - hex_string.length + 1;
-    return '0x' + hex_string + Array(+(zero > 0 && zero)).join('0');
+    return web3_utils.padRight(web3_utils.utf8ToHex(str), bytes*2);
   };
 
   var addHexPrefix = function(hexStr){
@@ -104,11 +102,19 @@
     );
   }
 
-  function getFactsignerUrl(factsignerAddr, marketFactHash){
+  function getFactsignerUrl(signerAddr, factHash){
     return (
-      'https://www.factsigner.com/api_v1/facts/id/{factsignerAddr}-{marketFactHash}?accept_terms_of_service=current'
-        .replace('{factsignerAddr}', factsignerAddr.replace(/^0x/, ''))
-        .replace('{marketFactHash}', marketFactHash.replace(/^0x/, ''))
+      'https://www.factsigner.com/facts/id/{signerAddr}/{factHash}?accept_terms_of_service=current'
+        .replace('{signerAddr}', addHexPrefix(signerAddr.toLowerCase()))
+        .replace('{factHash}', addHexPrefix(factHash.toLowerCase()))
+    );
+  }
+
+  function getFactsignerUrlApi(signerAddr, factHash){
+    return (
+      'https://www.factsigner.com/api_v1/facts/id/{signerAddr}/{factHash}?accept_terms_of_service=current'
+        .replace('{signerAddr}', addHexPrefix(signerAddr.toLowerCase()))
+        .replace('{factHash}', addHexPrefix(factHash.toLowerCase()))
     );
   }
 
@@ -119,6 +125,7 @@
     sign: sign,
     sigToBytes32: sigToBytes32,
     factHash: factHash,
-    getFactsignerUrl: getFactsignerUrl
+    getFactsignerUrl: getFactsignerUrl,
+    getFactsignerUrlApi: getFactsignerUrlApi
   };
 }));

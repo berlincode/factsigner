@@ -50,7 +50,7 @@ function setup(done){
   });
 }
 
-describe('Test1', function() {
+describe('Test contract and signature', function() {
   this.timeout(240*1000);
 
   var marketDict = {
@@ -139,7 +139,8 @@ describe('Test1', function() {
     it('Calculate settlement signature', function(done) {
       var hash = web3_utils.soliditySha3(
         {t: 'bytes32', v: factHash},
-        {t: 'bytes32', v: factsigner.toHex(value, 32)}
+        {t: 'bytes32', v: factsigner.toHex(value, 32)},
+        {t: 'uint16', v: '0x0'} // type: final type == 0
       );
       factsigner.sign(web3, account_sign, hash, function(err, sig) {
         assert.equal(err, null);

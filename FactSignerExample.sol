@@ -1,7 +1,7 @@
 /*
  Contract example for https://www.factsigner.com
 
- Version 1.0.1
+ Version 2.0.0
 */
 
 pragma solidity ^0.4.21;
@@ -18,7 +18,7 @@ contract FactSignerExample {
         uint64 settlement; /*  */
 
         /* address of signing authority - used to check the signed value via ecrecover() */
-        address ethAddr;
+        address signerAddr;
     }
 
     /* after settlement value is successfully received 'settled' is set to true */
@@ -35,7 +35,7 @@ contract FactSignerExample {
         uint32 objectionPeriond,
         uint64 settlement,
         bytes32[3] signature, /* array containing signature elements [v, r, s] */
-        address ethAddr
+        address signerAddr
     ) public
     {
         bytes32 factHash = calcFactHash(
@@ -50,7 +50,7 @@ contract FactSignerExample {
             verify(
                 factHash,
                 signature
-            ) == ethAddr
+            ) == signerAddr
         );
 
         /* facts */
@@ -61,11 +61,11 @@ contract FactSignerExample {
         baseData.settlement = settlement;
 
         /* address of signing authority (i.e. factsigner.com) */
-        baseData.ethAddr = ethAddr;
+        baseData.signerAddr = signerAddr;
     }
 
     function settle (
-        bytes32 value,
+        int256 value,
         bytes32[3] signature /* array containing signature elements [v, r, s] */
     ) public
     {
@@ -82,10 +82,11 @@ contract FactSignerExample {
                         baseData.objectionPeriond,
                         baseData.settlement
                     ),
-                    value
+                    value,
+                    uint16(0) // type: final type == 0
                 ),
                 signature
-            ) == baseData.ethAddr
+            ) == baseData.signerAddr
         ) {
             /* DO SOMETHING HERE using the validated parameter 'value' */
             settled = true;
