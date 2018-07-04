@@ -63,7 +63,7 @@ describe('Test contract and signature', function() {
 
   var factHash;
   var signature_settlement;
-  var value = web3_utils.toBN('0x9d140d4cd91b0000'); //11.3186863872
+  var valueBn = web3_utils.toBN('0x9d140d4cd91b0000'); //11.3186863872
   var contractInstance;
 
   before('Setup', function(done) {
@@ -82,47 +82,48 @@ describe('Test contract and signature', function() {
     });
 
     it('Contract create', function(done) {
-      factsigner.sign(web3, account_sign, factHash, function(err, sig) {
-        assert.equal(err, null);
+      factsigner.sign(web3, account_sign, factHash)
+        .then(function(sig){
 
-        var contract = new web3.eth.Contract(contract_interface);
-        contract.deploy(
-          {
-            data: contract_bytecode,
-            arguments: [
-              marketDict.baseUnitExp,
-              factsigner.stringToHex(marketDict.name, 32),
-              marketDict.ndigit,
-              marketDict.objectionPeriod,
-              marketDict.settlement,
-              factsigner.sigToBytes32(sig),
-              account_sign
-            ]
-          }
-        ).send(
-          {
-            gas: 4000000,
-            gasPrice: '30000000000000',
-            //value: 0,
-            from: account_default
-          }
-        ).on('error', function(error){  
-          //console.log('error', error);
-          assert.equal(error, null);
-          done();
-        }).on('transactionHash', function(/*transactionHash*/){
-          //console.log('transactionHash', transactionHash);
-        }).on('receipt', function(/*receipt*/){
-          //console.log('receipt.contractAddress', receipt.contractAddress) // contains the new contract address
-        }).on('confirmation', function(confirmationNumber, receipt){
-          //console.log('confirmation receipt', receipt);
-          assert.notEqual(receipt, undefined);
-        }).then(function(newContractInstance){
-          assert.notEqual(newContractInstance.options.address, undefined);
-          contractInstance = newContractInstance;
-          done();
-        });
-      });
+          var contract = new web3.eth.Contract(contract_interface);
+          contract.deploy(
+            {
+              data: contract_bytecode,
+              arguments: [
+                marketDict.baseUnitExp,
+                factsigner.stringToHex(marketDict.name, 32),
+                marketDict.ndigit,
+                marketDict.objectionPeriod,
+                marketDict.settlement,
+                factsigner.sigToBytes32(sig),
+                account_sign
+              ]
+            }
+          ).send(
+            {
+              gas: 4000000,
+              gasPrice: '30000000000000',
+              //value: 0,
+              from: account_default
+            }
+          ).on('error', function(error){  
+            //console.log('error', error);
+            assert.equal(error, null);
+            done();
+          }).on('transactionHash', function(/*transactionHash*/){
+            //console.log('transactionHash', transactionHash);
+          }).on('receipt', function(/*receipt*/){
+            //console.log('receipt.contractAddress', receipt.contractAddress) // contains the new contract address
+          }).on('confirmation', function(confirmationNumber, receipt){
+            //console.log('confirmation receipt', receipt);
+            assert.notEqual(receipt, undefined);
+          }).then(function(newContractInstance){
+            assert.notEqual(newContractInstance.options.address, undefined);
+            contractInstance = newContractInstance;
+            done();
+          });
+        }
+        );
     });
 
     it('Check that no settlement was done', function(done) {
@@ -137,21 +138,21 @@ describe('Test contract and signature', function() {
     });
 
     it('Calculate settlement signature', function(done) {
-      var hash = web3_utils.soliditySha3(
-        {t: 'bytes32', v: factHash},
-        {t: 'bytes32', v: factsigner.toHex(value, 32)},
-        {t: 'uint16', v: '0x0'} // type: final type == 0
+      var hash = factsigner.settlementHash(
+        factHash,
+        valueBn,
+        factsigner.SETTLEMENT_TYPE_FINAL
       );
-      factsigner.sign(web3, account_sign, hash, function(err, sig) {
-        assert.equal(err, null);
-        signature_settlement = factsigner.sigToBytes32(sig); // convert to byte32
-        done();
-      });
+      factsigner.sign(web3, account_sign, hash)
+        .then(function(sig){
+          signature_settlement = factsigner.sigToBytes32(sig); // convert to byte32
+          done();
+        });
     });
 
     it('Settle', function(done) {
       contractInstance.methods.settle(
-        factsigner.toHex(value, 32),
+        factsigner.toHex(valueBn, 32),
         signature_settlement
       ).send(
         {

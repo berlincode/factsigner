@@ -28,9 +28,23 @@
   }
 }(this, function (web3_utils) {
 
+  //function toFloat(bn, base_unit_exp) {
+  //  // no flooring/rounding/ceiling - just stripping digits
+  //  var divisor = web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp));
+  //  return bn.div(divisor).mul(unitMultiplier).toString();
+  //}
+  function parseFloatToBn(floatStr, base_unit_exp){
+    var numberFractionalDigits = 0;
+    if (floatStr.indexOf('.') >= 0)
+      numberFractionalDigits = floatStr.length - floatStr.indexOf('.') - 1;
+    floatStr = floatStr.replace('.', '');
+
+    return web3_utils.toBN(floatStr).mul(web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp-numberFractionalDigits)));
+  }
+
   function toUnitString(bn, base_unit_exp, ndigit) {
     // no flooring/rounding/ceiling - just stripping digits
-    var unitDivisor =  web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp-ndigit));
+    var unitDivisor = web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp-ndigit));
     if (ndigit > 0)
     {
       var str = bn.div(unitDivisor).toString();
@@ -44,20 +58,29 @@
       str = Array(+((ndigit + 2 > str.length) && (ndigit + 2 - str.length))).join('0') + str;
       return sign + str.substring(0, str.length-ndigit) + '.' + str.substring(str.length-ndigit);
     }
-    var unitMultiplier =  web3_utils.toBN('10').pow(web3_utils.toBN(-ndigit));
+    var unitMultiplier = web3_utils.toBN('10').pow(web3_utils.toBN(-ndigit));
     return bn.div(unitDivisor).mul(unitMultiplier).toString();
   }
 
-  // TODO use from web3.utils?
+  function toUnitStringExact(bn, base_unit_exp) {
+    var string = toUnitString(bn, base_unit_exp, base_unit_exp);
+    if (string.indexOf('.') > 0)
+      return string.replace(/[.]?0+$/,''); // remove trailing zeroes
+    return string; // nothing to remove
+  }
+
+  // TODO use from web3.utils? // differentiate signed unsigned ; throw if number too large
   var toHex = function toHex(dec, bytes) {
     var length = bytes * 8;
     var digits = bytes * 2;
     var hex_string;
     if (dec < 0) {
-      hex_string = (web3_utils.toBN(2)).pow(length).add(web3_utils.toBN(dec)).toString(16);
+      hex_string = (web3_utils.toBN(2)).pow(web3_utils.toBN(length)).add(web3_utils.toBN(dec)).toString(16);
     } else {
       hex_string = web3_utils.toBN(dec).toString(16);
     }
+    if (hex_string.length > bytes)
+      throw new Error('number too large');
     var zero = digits - hex_string.length + 1;
     return '0x' + Array(+(zero > 0 && zero)).join('0') + hex_string;
   };
@@ -66,22 +89,25 @@
     return web3_utils.padRight(web3_utils.utf8ToHex(str), bytes*2);
   };
 
+  var hexToString = function(hexStr){
+    return web3_utils.hexToUtf8(hexStr).split('\0').shift();
+  };
+
   var addHexPrefix = function(hexStr){
     return '0x' + hexStr.replace(/^0x/, '');
   };
 
-  var sign = function(web3, address, value, callback) {
-    web3.eth.sign(addHexPrefix(value), address, function(err, sig) {
-      if (!err) {
+  var sign = function(web3, address, value) {
+    var promise = web3.eth.sign(addHexPrefix(value), address)
+      .then(function(sig){
         var r = sig.slice(0, 66);
         var s = '0x' + sig.slice(66, 130);
         var v = parseInt(sig.slice(130, 132), 16);
         if ((v !== 27) && (v !== 28)) v+=27;
-        callback(undefined, {r: r, s: s, v: v});
-      } else {
-        callback(err, undefined);
+        return {r: r, s: s, v: v};
       }
-    });
+      );
+    return promise;
   };
 
   var sigToBytes32 = function(sig) {
@@ -102,6 +128,14 @@
     );
   }
 
+  function settlementHash(factHash, valueBn, settlementType) {
+    return web3_utils.soliditySha3(
+      {t: 'bytes32', v: factHash},
+      {t: 'bytes32', v: toHex(valueBn, 32)},
+      {t: 'uint16', v: settlementType} // type: e.g. final type == 0
+    );
+  }
+
   function getFactsignerUrl(signerAddr, factHash){
     return (
       'https://www.factsigner.com/facts/id/{signerAddr}/{factHash}?accept_terms_of_service=current'
@@ -119,13 +153,18 @@
   }
 
   return {
+    parseFloatToBn: parseFloatToBn,
     toUnitString: toUnitString,
+    toUnitStringExact: toUnitStringExact,
     toHex: toHex,
     stringToHex: stringToHex,
+    hexToString:hexToString,
     sign: sign,
     sigToBytes32: sigToBytes32,
     factHash: factHash,
+    settlementHash: settlementHash,
     getFactsignerUrl: getFactsignerUrl,
-    getFactsignerUrlApi: getFactsignerUrlApi
+    getFactsignerUrlApi: getFactsignerUrlApi,
+    SETTLEMENT_TYPE_FINAL: '0x0'
   };
 }));
