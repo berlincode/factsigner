@@ -165,6 +165,7 @@
     settlementHash: settlementHash,
     getFactsignerUrl: getFactsignerUrl,
     getFactsignerUrlApi: getFactsignerUrlApi,
-    SETTLEMENT_TYPE_FINAL: '0x0'
+    SETTLEMENT_TYPE_FINAL: '0x0',
+    weiToEthExponent: 18
   };
 }));
