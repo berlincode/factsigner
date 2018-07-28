@@ -1,7 +1,8 @@
 // vim: sts=2:ts=2:sw=2
 /* eslint-env mocha */
 var factsigner = require('../index.js');
-var web3_utils = require('web3-utils');
+var Web3 = require('web3');
+var web3_utils = Web3.utils;
 var assert = require('assert');
 
 describe('Test toUnitString()', function() {

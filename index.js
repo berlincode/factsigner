@@ -3,30 +3,31 @@
   if (typeof define === 'function' && define.amd) {
     // AMD
     define([
-      'web3-utils'
+      'web3'
     ], factory);
     define(
       [
-        'web3-utils'
+        'web3'
       ], function (
-        web3_utils
+        web3
       ) {
         return factory(
-          web3_utils
+          web3
         );
       });
   } else if (typeof module !== 'undefined' && module.exports) {
     // CommonJS (node and other environments that support module.exports)
     module.exports = factory(
-      require('web3-utils')
+      require('web3')
     );
   }else {
     // Global (browser)
     root.factsigner = factory(
-      root.Web3.utils // we expect that the whole Web3 was loaded an use only the utils from it
+      root.Web3 // we expect that the whole Web3 was loaded an use only the utils from it
     );
   }
-}(this, function (web3_utils) {
+}(this, function (Web3) {
+  var web3_utils = Web3.utils;
 
   //function toFloat(bn, base_unit_exp) {
   //  // no flooring/rounding/ceiling - just stripping digits

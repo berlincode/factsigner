@@ -1,10 +1,10 @@
 /*
  Contract example for https://www.factsigner.com
 
- Version 2.0.0
+ Version 2.1.0
 */
 
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.24;
 
 
 contract FactSignerExample {
@@ -28,7 +28,7 @@ contract FactSignerExample {
     BaseData baseData;
 
     /* This is the constructor */
-    function FactSignerExample (
+    constructor (
         uint8 baseUnitExp,
         bytes32 name,
         int8 ndigit,
@@ -50,7 +50,8 @@ contract FactSignerExample {
             verify(
                 factHash,
                 signature
-            ) == signerAddr
+            ) == signerAddr,
+            "Signature invalid."
         );
 
         /* facts */
@@ -75,15 +76,17 @@ contract FactSignerExample {
         if (
             verify(
                 keccak256(
-                    calcFactHash(
-                        baseData.baseUnitExp,
-                        baseData.name,
-                        baseData.ndigit,
-                        baseData.objectionPeriond,
-                        baseData.settlement
-                    ),
-                    value,
-                    uint16(0) // type: final type == 0
+                    abi.encodePacked(
+                        calcFactHash(
+                            baseData.baseUnitExp,
+                            baseData.name,
+                            baseData.ndigit,
+                            baseData.objectionPeriond,
+                            baseData.settlement
+                        ),
+                        value,
+                        uint16(0) // type: final type == 0
+                    )
                 ),
                 signature
             ) == baseData.signerAddr
@@ -98,10 +101,15 @@ contract FactSignerExample {
     function verify(
         bytes32 _message,
         bytes32[3] signature
-    ) pure internal returns (address)
+    ) internal pure returns (address)
     {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedHash = keccak256(prefix, _message);
+        bytes32 prefixedHash = keccak256(
+            abi.encodePacked(
+                prefix, 
+                _message
+            )
+        );
         address signer = ecrecover(
             prefixedHash,
             uint8(signature[0]),
@@ -117,15 +125,17 @@ contract FactSignerExample {
         int8 ndigit,
         uint32 objectionPeriond,
         uint64 settlement
-    ) pure internal returns (bytes32)
+    ) internal pure returns (bytes32)
     {
         return keccak256(
-            /* sorted alphabetically */
-            baseUnitExp, /* 'base_unit_exp' = 18 -> base_unit = 10**18 = 1000000000000000000 */
-            name, /* 'name' ascii encoded string as bytes32 - unused bytes are filled with \0 */
-            ndigit, /* 'ndigit' number of digits (may be negative) */
-            objectionPeriond, /* 'objection_period' 3600 seconds */
-            settlement /* 'settlement' unix epoch seconds UTC */
+            abi.encodePacked(
+                /* sorted alphabetically */
+                baseUnitExp, /* 'base_unit_exp' = 18 -> base_unit = 10**18 = 1000000000000000000 */
+                name, /* 'name' ascii encoded string as bytes32 - unused bytes are filled with \0 */
+                ndigit, /* 'ndigit' number of digits (may be negative) */
+                objectionPeriond, /* 'objection_period' 3600 seconds */
+                settlement /* 'settlement' unix epoch seconds UTC */
+            )
         );
     }
 

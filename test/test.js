@@ -2,7 +2,7 @@
 /* eslint-env mocha */
 var factsigner = require('../index.js');
 var Web3 = require('web3');
-var web3_utils = require('web3-utils');
+var web3_utils = Web3.utils;
 var assert = require('assert');
 var TestRPC = require('ganache-core'); // was 'ethereumjs-testrpc'
 var fs = require('fs');
