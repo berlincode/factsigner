@@ -5,16 +5,6 @@
     define([
       'web3'
     ], factory);
-    define(
-      [
-        'web3'
-      ], function (
-        web3
-      ) {
-        return factory(
-          web3
-        );
-      });
   } else if (typeof module !== 'undefined' && module.exports) {
     // CommonJS (node and other environments that support module.exports)
     module.exports = factory(
