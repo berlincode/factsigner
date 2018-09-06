@@ -1,6 +1,6 @@
 {
   "name": "factsigner",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "Solidity factsigner.com helper functions and example ethereum contract",
   "homepage": "https://www.factsigner.com",
   "license": "MIT",
@@ -33,7 +33,7 @@
     "ethereum"
   ],
   "dependencies": {
-    "web3": "^1.0.0-beta.35"
+    "web3": "^1.0.0-beta.36"
   },
   "devDependencies": {
     "eslint": "^4.18.2",
