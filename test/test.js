@@ -83,7 +83,7 @@ describe('Test contract and signature', function() {
 
     it('Contract create', function(done) {
       factsigner.sign(web3, account_sign, factHash)
-        .then(function(sig){
+        .then(function(signature){
 
           var contract = new web3.eth.Contract(contract_interface);
           contract.deploy(
@@ -95,7 +95,7 @@ describe('Test contract and signature', function() {
                 marketDict.ndigit,
                 marketDict.objectionPeriod,
                 marketDict.settlement,
-                factsigner.sigToBytes32(sig),
+                signature,
                 account_sign
               ]
             }
@@ -145,14 +145,14 @@ describe('Test contract and signature', function() {
       );
       factsigner.sign(web3, account_sign, hash)
         .then(function(sig){
-          signature_settlement = factsigner.sigToBytes32(sig); // convert to byte32
+          signature_settlement = sig;
           done();
         });
     });
 
     it('Settle', function(done) {
       contractInstance.methods.settle(
-        factsigner.toHex(valueBn, 32),
+        valueBn.toString(),
         signature_settlement
       ).send(
         {

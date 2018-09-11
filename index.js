@@ -61,6 +61,7 @@
   }
 
   // TODO use from web3.utils? // differentiate signed unsigned ; throw if number too large
+  /*
   var toHex = function toHex(dec, bytes) {
     var length = bytes * 8;
     var digits = bytes * 2;
@@ -75,6 +76,7 @@
     var zero = digits - hex_string.length + 1;
     return '0x' + Array(+(zero > 0 && zero)).join('0') + hex_string;
   };
+  */
 
   var stringToHex = function(str, bytes){
     return web3_utils.padRight(web3_utils.utf8ToHex(str), bytes*2);
@@ -95,18 +97,10 @@
         var s = '0x' + sig.slice(66, 130);
         var v = parseInt(sig.slice(130, 132), 16);
         if ((v !== 27) && (v !== 28)) v+=27;
-        return {r: r, s: s, v: v};
+        return {v: v, r: r, s: s};
       }
       );
     return promise;
-  };
-
-  var sigToBytes32 = function(sig) {
-    return [
-      toHex(sig.v, 32), // convert to byte32
-      sig.r,
-      sig.s
-    ];
   };
 
   function factHash(marketDict){
@@ -122,7 +116,7 @@
   function settlementHash(factHash, valueBn, settlementType) {
     return web3_utils.soliditySha3(
       {t: 'bytes32', v: factHash},
-      {t: 'bytes32', v: toHex(valueBn, 32)},
+      {t: 'bytes32', v: web3_utils.padLeft('0x' + valueBn.toString(16), 64)},
       {t: 'uint16', v: settlementType} // type: e.g. final type == 0
     );
   }
@@ -147,11 +141,10 @@
     parseFloatToBn: parseFloatToBn,
     toUnitString: toUnitString,
     toUnitStringExact: toUnitStringExact,
-    toHex: toHex,
+    //toHex: toHex,
     stringToHex: stringToHex,
     hexToString:hexToString,
     sign: sign,
-    sigToBytes32: sigToBytes32,
     factHash: factHash,
     settlementHash: settlementHash,
     getFactsignerUrl: getFactsignerUrl,

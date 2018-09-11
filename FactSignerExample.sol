@@ -5,6 +5,7 @@
 */
 
 pragma solidity ^0.4.24;
+pragma experimental ABIEncoderV2;
 
 
 contract FactSignerExample {
@@ -21,6 +22,12 @@ contract FactSignerExample {
         address signerAddr;
     }
 
+    struct Signature {
+        uint8 v;
+        bytes32 r;
+        bytes32 s;
+    }
+
     /* after settlement value is successfully received 'settled' is set to true */
     bool public settled;
 
@@ -34,7 +41,7 @@ contract FactSignerExample {
         int8 ndigit,
         uint32 objectionPeriond,
         uint64 settlement,
-        bytes32[3] signature, /* array containing signature elements [v, r, s] */
+        Signature signature,
         address signerAddr
     ) public
     {
@@ -67,7 +74,7 @@ contract FactSignerExample {
 
     function settle (
         int256 value,
-        bytes32[3] signature /* array containing signature elements [v, r, s] */
+        Signature signature
     ) public
     {
         if (settled == true)
@@ -100,7 +107,7 @@ contract FactSignerExample {
 
     function verify(
         bytes32 _message,
-        bytes32[3] signature
+        Signature signature
     ) internal pure returns (address)
     {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
@@ -112,9 +119,9 @@ contract FactSignerExample {
         );
         address signer = ecrecover(
             prefixedHash,
-            uint8(signature[0]),
-            signature[1],
-            signature[2]
+            signature.v,
+            signature.r,
+            signature.s
         );
         return signer;
     }
