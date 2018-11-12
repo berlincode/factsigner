@@ -150,6 +150,9 @@
     getFactsignerUrl: getFactsignerUrl,
     getFactsignerUrlApi: getFactsignerUrlApi,
     SETTLEMENT_TYPE_FINAL: '0x0',
-    weiToEthExponent: 18
+    weiToEthExponent: 18, // useful for parseFloatToBn()
+    signerAddresses: [
+      0x49B6D897575b0769d45eBa7E2De60A16de5B8C13 // this is only the temporary key
+    ]
   };
 }));

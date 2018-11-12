@@ -29,7 +29,7 @@ var account_sign, account_default;
 
 function setup(done){
   web3 = new Web3();
-  var options = {
+  const options = {
     logger: logger,
     gasPrice: 20000000000,
     gasLimit: 0x47E7C4,
@@ -81,64 +81,42 @@ describe('Test contract and signature', function() {
       done();
     });
 
-    it('Contract create', function(done) {
-      factsigner.sign(web3, account_sign, factHash)
-        .then(function(signature){
+    it('Contract create', async function() {
+      const contract = new web3.eth.Contract(contract_interface);
+      const signature = await factsigner.sign(web3, account_sign, factHash);
 
-          var contract = new web3.eth.Contract(contract_interface);
-          contract.deploy(
-            {
-              data: contract_bytecode,
-              arguments: [
-                marketDict.baseUnitExp,
-                factsigner.stringToHex(marketDict.name, 32),
-                marketDict.ndigit,
-                marketDict.objectionPeriod,
-                marketDict.settlement,
-                signature,
-                account_sign
-              ]
-            }
-          ).send(
-            {
-              gas: 4000000,
-              gasPrice: '30000000000000',
-              //value: 0,
-              from: account_default
-            }
-          ).on('error', function(error){  
-            //console.log('error', error);
-            assert.equal(error, null);
-            done();
-          }).on('transactionHash', function(/*transactionHash*/){
-            //console.log('transactionHash', transactionHash);
-          }).on('receipt', function(/*receipt*/){
-            //console.log('receipt.contractAddress', receipt.contractAddress) // contains the new contract address
-          }).on('confirmation', function(confirmationNumber, receipt){
-            //console.log('confirmation receipt', receipt);
-            assert.notEqual(receipt, undefined);
-          }).then(function(newContractInstance){
-            assert.notEqual(newContractInstance.options.address, undefined);
-            contractInstance = newContractInstance;
-            done();
-          });
+      contractInstance = await contract.deploy(
+        {
+          data: contract_bytecode,
+          arguments: [
+            marketDict.baseUnitExp,
+            factsigner.stringToHex(marketDict.name, 32),
+            marketDict.ndigit,
+            marketDict.objectionPeriod,
+            marketDict.settlement,
+            signature,
+            account_sign
+          ]
         }
-        );
+      ).send(
+        {
+          gas: 4000000,
+          gasPrice: '30000000000000',
+          //value: 0,
+          from: account_default
+        }
+      );
+      assert.notEqual(contractInstance.options.address, undefined);
     });
 
-    it('Check that no settlement was done', function(done) {
-      contractInstance.methods.settled().call(function(err, result) {
-        /* check if really expired */
-        assert.equal(err, null);
-        /* the contract should not be settled */
-        assert.equal(result, false);
-
-        done();
-      });
+    it('Check that no settlement was done', async function() {
+      const settlement_success = await contractInstance.methods.settled().call();
+      /* the contract should not be settled */
+      assert.equal(settlement_success, false);
     });
 
     it('Calculate settlement signature', function(done) {
-      var hash = factsigner.settlementHash(
+      const hash = factsigner.settlementHash(
         factHash,
         valueBn,
         factsigner.SETTLEMENT_TYPE_FINAL
