@@ -19,23 +19,23 @@
 }(this, function (Web3) {
   var web3_utils = Web3.utils;
 
-  //function toFloat(bn, base_unit_exp) {
+  //function toFloat(bn, baseUnitExp) {
   //  // no flooring/rounding/ceiling - just stripping digits
-  //  var divisor = web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp));
+  //  var divisor = web3_utils.toBN('10').pow(web3_utils.toBN(baseUnitExp));
   //  return bn.div(divisor).mul(unitMultiplier).toString();
   //}
-  function parseFloatToBn(floatStr, base_unit_exp){
+  function parseFloatToBn(floatStr, baseUnitExp){
     var numberFractionalDigits = 0;
     if (floatStr.indexOf('.') >= 0)
       numberFractionalDigits = floatStr.length - floatStr.indexOf('.') - 1;
     floatStr = floatStr.replace('.', '');
 
-    return web3_utils.toBN(floatStr).mul(web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp-numberFractionalDigits)));
+    return web3_utils.toBN(floatStr).mul(web3_utils.toBN('10').pow(web3_utils.toBN(baseUnitExp-numberFractionalDigits)));
   }
 
-  function toUnitString(bn, base_unit_exp, ndigit) {
+  function toUnitString(bn, baseUnitExp, ndigit) {
     // no flooring/rounding/ceiling - just stripping digits
-    var unitDivisor = web3_utils.toBN('10').pow(web3_utils.toBN(base_unit_exp-ndigit));
+    var unitDivisor = web3_utils.toBN('10').pow(web3_utils.toBN(baseUnitExp-ndigit));
     if (ndigit > 0)
     {
       var str = bn.div(unitDivisor).toString();
@@ -52,12 +52,53 @@
     var unitMultiplier = web3_utils.toBN('10').pow(web3_utils.toBN(-ndigit));
     return bn.div(unitDivisor).mul(unitMultiplier).toString();
   }
+/*
+function fromWei(weiInput, unit, optionsInput) {
+  var wei = numberToBN(weiInput); // eslint-disable-line
+  var negative = wei.lt(zero); // eslint-disable-line
+  var base = getValueOfUnit(unit);
+  var baseLength = unitMap[unit].length - 1 || 1;
+  var options = optionsInput || {};
 
-  function toUnitStringExact(bn, base_unit_exp) {
-    var string = toUnitString(bn, base_unit_exp, base_unit_exp);
+  if (negative) {
+    wei = wei.mul(negative1);
+  }
+
+  var fraction = wei.mod(base).toString(10); // eslint-disable-line
+
+  while (fraction.length < baseLength) {
+    fraction = '0' + fraction;
+  }
+
+  if (!options.pad) {
+    fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+  }
+
+  var whole = wei.div(base).toString(10); // eslint-disable-line
+
+  if (options.commify) {
+    whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  }
+
+  var value = '' + whole + (fraction == '0' ? '' : '.' + fraction); // eslint-disable-line
+
+  if (negative) {
+    value = '-' + value;
+  }
+
+  return value;
+}
+*/
+
+  function toUnitStringExact(bn, baseUnitExp) {
+    var string = toUnitString(bn, baseUnitExp, baseUnitExp);
     if (string.indexOf('.') > 0)
       return string.replace(/[.]?0+$/,''); // remove trailing zeroes
     return string; // nothing to remove
+  }
+
+  function toFloat(bn, baseUnitExp) {
+    return bn.toNumber() / Math.pow(10, baseUnitExp)
   }
 
   // TODO use from web3.utils? // differentiate signed unsigned ; throw if number too large
@@ -141,6 +182,7 @@
     parseFloatToBn: parseFloatToBn,
     toUnitString: toUnitString,
     toUnitStringExact: toUnitStringExact,
+    toFloat: toFloat,
     //toHex: toHex,
     stringToHex: stringToHex,
     hexToString:hexToString,
@@ -152,7 +194,7 @@
     SETTLEMENT_TYPE_FINAL: '0x0',
     weiToEthExponent: 18, // useful for parseFloatToBn()
     signerAddresses: [
-      0x49B6D897575b0769d45eBa7E2De60A16de5B8C13 // this is only the temporary key
+      "0x49B6D897575b0769d45eBa7E2De60A16de5B8C13" // this is only the temporary key
     ]
   };
 }));

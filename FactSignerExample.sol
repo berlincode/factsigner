@@ -1,10 +1,10 @@
 /*
  Contract example for https://www.factsigner.com
 
- Version 2.1.1
+ Version 2.1.2
 */
 
-pragma solidity ^0.4.25;
+pragma solidity ^0.5.0;
 pragma experimental ABIEncoderV2;
 
 
@@ -41,7 +41,7 @@ contract FactSignerExample {
         int8 ndigit,
         uint32 objectionPeriond,
         uint64 settlement,
-        Signature signature,
+        Signature memory signature,
         address signerAddr
     ) public
     {
@@ -74,7 +74,7 @@ contract FactSignerExample {
 
     function settle (
         int256 value,
-        Signature signature
+        Signature memory signature
     ) public
     {
         if (settled == true)
@@ -107,7 +107,7 @@ contract FactSignerExample {
 
     function verify(
         bytes32 _message,
-        Signature signature
+        Signature memory signature
     ) internal pure returns (address)
     {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
