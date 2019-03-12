@@ -1,10 +1,10 @@
 /*
  Contract example for https://www.factsigner.com
 
- Version 2.1.2
+ Version 2.1.4
 */
 
-pragma solidity ^0.5.0;
+pragma solidity 0.5.5;
 pragma experimental ABIEncoderV2;
 
 

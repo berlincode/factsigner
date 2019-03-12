@@ -2,8 +2,9 @@
 /* eslint-env mocha */
 var factsigner = require('../index.js');
 var Web3 = require('web3');
-var web3_utils = Web3.utils;
 var assert = require('assert');
+
+var web3 = (new Web3('http://localhost:8545')); // TODO
 
 describe('Test parseFloatToBn()', function() {
   describe('parseFloatToBn', function() {
@@ -12,7 +13,7 @@ describe('Test parseFloatToBn()', function() {
 
       assert.ok(
         factsigner.parseFloatToBn('2.1', 18).eq(
-          web3_utils.toBN('0x1d24b2dfac520000') // (10**17) *21
+          web3.utils.toBN('0x1d24b2dfac520000') // (10**17) *21
         )
       );
 

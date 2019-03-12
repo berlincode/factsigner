@@ -2,9 +2,9 @@
 /* eslint-env mocha */
 var factsigner = require('../index.js');
 var Web3 = require('web3');
-var web3_utils = Web3.utils;
+var web3_utils = require('web3-utils');
 var assert = require('assert');
-var TestRPC = require('ganache-core'); // was 'ethereumjs-testrpc'
+var ganache = require('ganache-core');
 var fs = require('fs');
 
 var logger = {
@@ -25,29 +25,29 @@ var contract_bytecode = fs.readFileSync(
 );
 
 var web3;
-var account_sign, account_default;
+var accountDefault;
+var accountSign;
 
 function setup(done){
-  web3 = new Web3();
   const options = {
     logger: logger,
     gasPrice: 20000000000,
     gasLimit: 0x47E7C4,
     accounts: [
-      {index: 0, balance: 1000 * 1000000000000000000}, // 1000 ether
-      {index: 1, balance: 0} // used only as signing authority
+      {index: 0, balance: 1000 * 1000000000000000000} // 1000 ether
     ]
   };
 
-  web3.setProvider(TestRPC.provider(options));
+  web3 = new Web3(ganache.provider(options));
 
-  web3.eth.getAccounts(function(err, accounts) {
-    assert.equal(err, null);
-    assert.equal(accounts.length, 2);
-    account_default = accounts[0];
-    account_sign = accounts[1];
-    done();
-  });
+  web3.eth.getAccounts()
+    .then(function(accounts){
+      assert.equal(accounts.length, 1);
+      accountDefault = accounts[0];
+      done();
+    });
+
+  accountSign = web3.eth.accounts.privateKeyToAccount('0x348ce564d427a3311b6536bbcff9390d69395b06ed6c486954e971d960fe8709');
 }
 
 describe('Test contract and signature', function() {
@@ -62,7 +62,7 @@ describe('Test contract and signature', function() {
   };
 
   var factHash;
-  var signature_settlement;
+  var signatureSettlement;
   var valueBn = web3_utils.toBN('0x9d140d4cd91b0000'); //11.3186863872
   var contractInstance;
 
@@ -83,7 +83,7 @@ describe('Test contract and signature', function() {
 
     it('Contract create', async function() {
       const contract = new web3.eth.Contract(contract_interface);
-      const signature = await factsigner.sign(web3, account_sign, factHash);
+      const signature = factsigner.sign(web3, accountSign.privateKey, factHash);
 
       contractInstance = await contract.deploy(
         {
@@ -95,7 +95,7 @@ describe('Test contract and signature', function() {
             marketDict.objectionPeriod,
             marketDict.settlement,
             signature,
-            account_sign
+            accountSign.address
           ]
         }
       ).send(
@@ -103,7 +103,7 @@ describe('Test contract and signature', function() {
           gas: 4000000,
           gasPrice: '30000000000000',
           //value: 0,
-          from: account_default
+          from: accountDefault
         }
       );
       assert.notEqual(contractInstance.options.address, undefined);
@@ -115,48 +115,32 @@ describe('Test contract and signature', function() {
       assert.equal(settlement_success, false);
     });
 
-    it('Calculate settlement signature', function(done) {
+    it('Calculate settlement signature', async function() {
       const hash = factsigner.settlementHash(
         factHash,
         valueBn,
         factsigner.SETTLEMENT_TYPE_FINAL
       );
-      factsigner.sign(web3, account_sign, hash)
-        .then(function(sig){
-          signature_settlement = sig;
-          done();
-        });
+      signatureSettlement = factsigner.sign(web3, accountSign.privateKey, hash);
     });
 
-    it('Settle', function(done) {
-      contractInstance.methods.settle(
+    it('Settle', async function() {
+      return contractInstance.methods.settle(
         valueBn.toString(),
-        signature_settlement
+        signatureSettlement
       ).send(
         {
           gas: 300000,
           gasPrice: '30000000000000',
           //value: 0,
-          from: account_default
+          from: accountDefault
         }
-      ).on('error', function(error){  
-        //console.log('error', error);
-        assert.equal(error, null);
-        done();
-      }
-      ).on('confirmation', function(confirmationNumber, receipt){
-        assert.notEqual(receipt, undefined);
-      }).then(function(transaction){
+      ).then(function(transaction){
         assert.notEqual(transaction, undefined);
-
-        contractInstance.methods.settled().call(function(err, result) {
-          /* check if really expired */
-          assert.equal(err, null);
-          /* now the contract should be settled */
-          assert.equal(result, true);
-
-          done();
-        });
+        return contractInstance.methods.settled().call();
+      }).then(function(result) {
+        /* now the contract should be settled */
+        assert.equal(result, true);
       });
     });
 

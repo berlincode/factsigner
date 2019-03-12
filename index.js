@@ -17,7 +17,7 @@
     );
   }
 }(this, function (Web3) {
-  var web3_utils = Web3.utils;
+  var web3_utils = new Web3('http://localhost:8545').utils; // TODO
 
   //function toFloat(bn, baseUnitExp) {
   //  // no flooring/rounding/ceiling - just stripping digits
@@ -52,43 +52,43 @@
     var unitMultiplier = web3_utils.toBN('10').pow(web3_utils.toBN(-ndigit));
     return bn.div(unitDivisor).mul(unitMultiplier).toString();
   }
-/*
-function fromWei(weiInput, unit, optionsInput) {
-  var wei = numberToBN(weiInput); // eslint-disable-line
-  var negative = wei.lt(zero); // eslint-disable-line
-  var base = getValueOfUnit(unit);
-  var baseLength = unitMap[unit].length - 1 || 1;
-  var options = optionsInput || {};
+  /*
+  function fromWei(weiInput, unit, optionsInput) {
+    var wei = numberToBN(weiInput); // eslint-disable-line
+    var negative = wei.lt(zero); // eslint-disable-line
+    var base = getValueOfUnit(unit);
+    var baseLength = unitMap[unit].length - 1 || 1;
+    var options = optionsInput || {};
 
-  if (negative) {
-    wei = wei.mul(negative1);
+    if (negative) {
+      wei = wei.mul(negative1);
+    }
+
+    var fraction = wei.mod(base).toString(10); // eslint-disable-line
+
+    while (fraction.length < baseLength) {
+      fraction = '0' + fraction;
+    }
+
+    if (!options.pad) {
+      fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
+    }
+
+    var whole = wei.div(base).toString(10); // eslint-disable-line
+
+    if (options.commify) {
+      whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    }
+
+    var value = '' + whole + (fraction == '0' ? '' : '.' + fraction); // eslint-disable-line
+
+    if (negative) {
+      value = '-' + value;
+    }
+
+    return value;
   }
-
-  var fraction = wei.mod(base).toString(10); // eslint-disable-line
-
-  while (fraction.length < baseLength) {
-    fraction = '0' + fraction;
-  }
-
-  if (!options.pad) {
-    fraction = fraction.match(/^([0-9]*[1-9]|0)(0*)/)[1];
-  }
-
-  var whole = wei.div(base).toString(10); // eslint-disable-line
-
-  if (options.commify) {
-    whole = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  }
-
-  var value = '' + whole + (fraction == '0' ? '' : '.' + fraction); // eslint-disable-line
-
-  if (negative) {
-    value = '-' + value;
-  }
-
-  return value;
-}
-*/
+  */
 
   function toUnitStringExact(bn, baseUnitExp) {
     var string = toUnitString(bn, baseUnitExp, baseUnitExp);
@@ -98,7 +98,7 @@ function fromWei(weiInput, unit, optionsInput) {
   }
 
   function toFloat(bn, baseUnitExp) {
-    return bn.toNumber() / Math.pow(10, baseUnitExp)
+    return bn.toNumber() / Math.pow(10, baseUnitExp);
   }
 
   // TODO use from web3.utils? // differentiate signed unsigned ; throw if number too large
@@ -120,6 +120,7 @@ function fromWei(weiInput, unit, optionsInput) {
   */
 
   var stringToHex = function(str, bytes){
+    bytes = bytes || 32;
     return web3_utils.padRight(web3_utils.utf8ToHex(str), bytes*2);
   };
 
@@ -131,17 +132,13 @@ function fromWei(weiInput, unit, optionsInput) {
     return '0x' + hexStr.replace(/^0x/, '');
   };
 
-  var sign = function(web3, address, value) {
-    var promise = web3.eth.sign(addHexPrefix(value), address)
-      .then(function(sig){
-        var r = sig.slice(0, 66);
-        var s = '0x' + sig.slice(66, 130);
-        var v = parseInt(sig.slice(130, 132), 16);
-        if ((v !== 27) && (v !== 28)) v+=27;
-        return {v: v, r: r, s: s};
-      }
-      );
-    return promise;
+  var sign = function(web3, privateKey, value) {
+    var obj = web3.eth.accounts.sign(addHexPrefix(value), privateKey);
+    return {
+      v: obj.v,
+      r: obj.r,
+      s: obj.s
+    };
   };
 
   function factHash(marketDict){
@@ -194,7 +191,7 @@ function fromWei(weiInput, unit, optionsInput) {
     SETTLEMENT_TYPE_FINAL: '0x0',
     weiToEthExponent: 18, // useful for parseFloatToBn()
     signerAddresses: [
-      "0x49B6D897575b0769d45eBa7E2De60A16de5B8C13" // this is only the temporary key
+      '0x49B6D897575b0769d45eBa7E2De60A16de5B8C13' // this is only the temporary key
     ]
   };
 }));
