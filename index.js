@@ -13,7 +13,7 @@
   }else {
     // Global (browser)
     root.factsigner = factory(
-      root.Web3 // we expect that the whole Web3 was loaded an use only the utils from it
+      root.web3 // we expect that the whole Web3 was loaded an use only the utils from it
     );
   }
 }(this, function (Web3) {
