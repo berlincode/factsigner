@@ -1,10 +1,11 @@
 // vim: sts=2:ts=2:sw=2
 /* eslint-env mocha */
-var factsigner = require('../index.js');
-var Web3 = require('web3');
-var assert = require('assert');
 
-var web3 = (new Web3('http://localhost:8545')); // TODO
+const factsigner = require('../js/index.js');
+const Web3 = require('web3');
+const assert = require('assert');
+
+const web3 = new Web3();
 
 describe('Test parseFloatToBn()', function() {
   describe('parseFloatToBn', function() {

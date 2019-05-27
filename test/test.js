@@ -1,26 +1,28 @@
 // vim: sts=2:ts=2:sw=2
 /* eslint-env mocha */
-var factsigner = require('../index.js');
-var Web3 = require('web3');
-var web3_utils = require('web3-utils');
-var assert = require('assert');
-var ganache = require('ganache-core');
-var fs = require('fs');
 
-var logger = {
+const factsigner = require('../js/index.js');
+const Web3 = require('web3');
+const web3_utils = require('web3-utils');
+const assert = require('assert');
+const ganache = require('ganache-core');
+const fs = require('fs');
+const path = require('path');
+
+const logger = {
   log: function(/*message*/) {
     //console.log(message);
   }
 };
 
-var contract_interface = JSON.parse(
+const contract_interface = JSON.parse(
   fs.readFileSync(
-    'FactSignerExample_sol_FactSignerExample.abi',
+    path.join('js', 'FactSignerExample_sol_FactSignerExample.abi'),
     {encoding: 'utf8'}
   )
 );
-var contract_bytecode = fs.readFileSync(
-  'FactSignerExample_sol_FactSignerExample.bin',
+const contract_bytecode = fs.readFileSync(
+  path.join('js', 'FactSignerExample_sol_FactSignerExample.bin'),
   {encoding: 'utf8'}
 );
 
@@ -56,14 +58,14 @@ describe('Test contract and signature', function() {
   var marketDict = {
     baseUnitExp: 18,
     objectionPeriod: 3600,
-    settlement: 1457676000,
-    name: 'BTC',
+    expirationDatetime: 1457676000,
+    underlying: factsigner.stringToHex('BTC'),
     ndigit: 2
   };
 
   var factHash;
   var signatureSettlement;
-  var valueBn = web3_utils.toBN('0x9d140d4cd91b0000'); //11.3186863872
+  var valueBn = web3_utils.toBN('11318686387200000000'); // = 11.3186863872 * (10**18)
   var contractInstance;
 
   before('Setup', function(done) {
@@ -76,7 +78,7 @@ describe('Test contract and signature', function() {
 
       factHash = factsigner.factHash(marketDict);
 
-      assert.equal(factHash, '0x03810f608753d91f1b531dec8ee3fb2d3fefec0a8c1290da483bef39a6aa7eed');
+      assert.equal(factHash, '0x7fb436bb93af49b4bdc0377b0cf46b89190aa6ac74907642184aa9862ca5072e');
 
       done();
     });
@@ -90,10 +92,10 @@ describe('Test contract and signature', function() {
           data: contract_bytecode,
           arguments: [
             marketDict.baseUnitExp,
-            factsigner.stringToHex(marketDict.name, 32),
+            marketDict.underlying,
             marketDict.ndigit,
             marketDict.objectionPeriod,
-            marketDict.settlement,
+            marketDict.expirationDatetime,
             signature,
             accountSign.address
           ]
@@ -107,6 +109,19 @@ describe('Test contract and signature', function() {
         }
       );
       assert.notEqual(contractInstance.options.address, undefined);
+    });
+
+    it('Validate factHash', async function() {
+      assert.equal(
+        factHash,
+        await contractInstance.methods.calcFactHash(
+          marketDict.baseUnitExp,
+          marketDict.underlying,
+          marketDict.ndigit,
+          marketDict.objectionPeriod,
+          marketDict.expirationDatetime
+        ).call()
+      );
     });
 
     it('Check that no settlement was done', async function() {

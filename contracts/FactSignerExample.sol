@@ -1,10 +1,10 @@
 /*
  Contract example for https://www.factsigner.com
 
- Version 2.1.4
+ Version 6.0.0
 */
 
-pragma solidity 0.5.5;
+pragma solidity 0.5.8;
 pragma experimental ABIEncoderV2;
 
 
@@ -13,10 +13,10 @@ contract FactSignerExample {
     struct BaseData {
         /* facts (sorted alphabetically) */
         uint8 baseUnitExp; /* */
-        bytes32 name; /*  */
+        bytes32 underlying; /* name */
         int8 ndigit;
-        uint32 objectionPeriond; /* */
-        uint64 settlement; /*  */
+        uint32 objectionPeriod; /* */
+        uint40 expirationDatetime; /*  */
 
         /* address of signing authority - used to check the signed value via ecrecover() */
         address signerAddr;
@@ -37,20 +37,20 @@ contract FactSignerExample {
     /* This is the constructor */
     constructor (
         uint8 baseUnitExp,
-        bytes32 name,
+        bytes32 underlying, /* name */
         int8 ndigit,
-        uint32 objectionPeriond,
-        uint64 settlement,
+        uint32 objectionPeriod,
+        uint40 expirationDatetime,
         Signature memory signature,
         address signerAddr
     ) public
     {
         bytes32 factHash = calcFactHash(
             baseUnitExp,
-            name,
+            underlying,
             ndigit,
-            objectionPeriond,
-            settlement
+            objectionPeriod,
+            expirationDatetime
         );
 
         require(
@@ -63,10 +63,10 @@ contract FactSignerExample {
 
         /* facts */
         baseData.baseUnitExp = baseUnitExp;
-        baseData.name = name;
+        baseData.underlying = underlying;
         baseData.ndigit = ndigit;
-        baseData.objectionPeriond = objectionPeriond;
-        baseData.settlement = settlement;
+        baseData.objectionPeriod = objectionPeriod;
+        baseData.expirationDatetime = expirationDatetime;
 
         /* address of signing authority (i.e. factsigner.com) */
         baseData.signerAddr = signerAddr;
@@ -86,10 +86,10 @@ contract FactSignerExample {
                     abi.encodePacked(
                         calcFactHash(
                             baseData.baseUnitExp,
-                            baseData.name,
+                            baseData.underlying,
                             baseData.ndigit,
-                            baseData.objectionPeriond,
-                            baseData.settlement
+                            baseData.objectionPeriod,
+                            baseData.expirationDatetime
                         ),
                         value,
                         uint16(0) // type: final type == 0
@@ -103,6 +103,25 @@ contract FactSignerExample {
         }
     }
 
+    function calcFactHash (
+        uint8 baseUnitExp,
+        bytes32 underlying,
+        int8 ndigit,
+        uint32 objectionPeriod,
+        uint40 expirationDatetime
+    ) public pure returns (bytes32)
+    {
+        return keccak256(
+            abi.encodePacked(
+                baseUnitExp, /* 'base_unit_exp' = 18 -> base_unit = 10**18 = 1000000000000000000 */
+                underlying, /* 'name' utf8 encoded string as bytes32 - unused bytes are filled with \0 */
+                ndigit, /* 'ndigit' number of digits (may be negative) */
+                objectionPeriod, /* 'objection_period' 3600 seconds */
+                expirationDatetime /* 'expirationDatetime' unix epoch seconds UTC */
+            )
+        );
+    }
+
     /* internal functions */
 
     function verify(
@@ -113,7 +132,7 @@ contract FactSignerExample {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         bytes32 prefixedHash = keccak256(
             abi.encodePacked(
-                prefix, 
+                prefix,
                 _message
             )
         );
@@ -124,26 +143,6 @@ contract FactSignerExample {
             signature.s
         );
         return signer;
-    }
-
-    function calcFactHash (
-        uint8 baseUnitExp,
-        bytes32 name,
-        int8 ndigit,
-        uint32 objectionPeriond,
-        uint64 settlement
-    ) internal pure returns (bytes32)
-    {
-        return keccak256(
-            abi.encodePacked(
-                /* sorted alphabetically */
-                baseUnitExp, /* 'base_unit_exp' = 18 -> base_unit = 10**18 = 1000000000000000000 */
-                name, /* 'name' ascii encoded string as bytes32 - unused bytes are filled with \0 */
-                ndigit, /* 'ndigit' number of digits (may be negative) */
-                objectionPeriond, /* 'objection_period' 3600 seconds */
-                settlement /* 'settlement' unix epoch seconds UTC */
-            )
-        );
     }
 
 }
