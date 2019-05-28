@@ -1,6 +1,6 @@
 {
   "name": "factsigner",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Solidity factsigner.com helper functions and example ethereum contract",
   "homepage": "https://www.factsigner.com",
   "license": "MIT",
@@ -17,10 +17,10 @@
     "postinstall": "patch-package"
   },
   "files": [
-    "FactSignerExample.sol",
-    "FactSignerExample_sol_FactSignerExample.abi",
-    "FactSignerExample_sol_FactSignerExample.bin",
-    "index.js",
+    "contracts/FactSignerExample.sol",
+    "js/FactSignerExample_sol_FactSignerExample.abi",
+    "js/FactSignerExample_sol_FactSignerExample.bin",
+    "js/index.js",
     "patches/*.patch",
     "LICENSE",
     "README"
