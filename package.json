@@ -1,6 +1,6 @@
 {
   "name": "factsigner",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Solidity factsigner.com helper functions and example ethereum contract",
   "homepage": "https://www.factsigner.com",
   "license": "MIT",
@@ -36,14 +36,14 @@
     "ethereum"
   ],
   "dependencies": {
-    "patch-package": "6.0.5",
+    "patch-package": "6.1.2",
     "web3": "1.0.0-beta.55"
   },
   "devDependencies": {
     "eslint": "^5.16.0",
-    "ganache-core": "2.5.5",
+    "ganache-core": "2.5.6",
     "mocha": "^6.0.2",
-    "solc": "0.5.8",
+    "solc": "0.5.10",
     "ethlint": "^1.2.4"
   }
 }
