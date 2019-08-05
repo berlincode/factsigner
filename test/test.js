@@ -40,7 +40,15 @@ function setup(done){
     ]
   };
 
-  web3 = new Web3(ganache.provider(options));
+  web3 = new Web3(
+    ganache.provider(options),
+    null, 
+    {
+      defaultBlock: 'latest',
+      transactionConfirmationBlocks: 1,
+      transactionBlockTimeout: 5
+    }
+  );
 
   web3.eth.getAccounts()
     .then(function(accounts){
