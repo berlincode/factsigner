@@ -14,7 +14,13 @@ describe('Test parseFloatToBn()', function() {
 
       assert.ok(
         factsigner.parseFloatToBn('2.1', 18).eq(
-          web3.utils.toBN('0x1d24b2dfac520000') // (10**17) *21
+          web3.utils.toBN('2100000000000000000') // 21 * (10**17)
+        )
+      );
+
+      assert.ok(
+        factsigner.parseFloatToBn('-2.1', 18).eq(
+          web3.utils.toBN('-2100000000000000000') // -1 * 21 * (10**17)
         )
       );
 
