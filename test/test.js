@@ -63,15 +63,14 @@ function setup(done){
 
 describe('Test contract and signature', function() {
   this.timeout(240*1000);
-  
-  
+
   const marketBaseData0 = {
     underlyingString: 'BTC',
     expirationDatetime: 1457676000,
     objectionPeriod: 3600,
     config: (
       factsigner.constants.configMarketType.STRIKED + /* this a striked market */
-      factsigner.constants.configIntervalType.USED 
+      factsigner.constants.configIntervalType.USED
     ),
     marketCategory: factsigner.constants.marketCategory.CRYPTO,
 
@@ -92,7 +91,7 @@ describe('Test contract and signature', function() {
     objectionPeriod: 3600,
     config: (
       factsigner.constants.configMarketType.NAMED + /* this a named market */
-      factsigner.constants.configIntervalType.UNUSED 
+      factsigner.constants.configIntervalType.UNUSED
     ),
     marketCategory: factsigner.constants.marketCategory.SOCIETY,
 

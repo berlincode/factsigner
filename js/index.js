@@ -264,17 +264,10 @@
     );
   }
 
-  function getFactsignerUrl(signerAddr, factHash){
+  function replaceUrl(url, signerAddr, factHash){
+    /* for e.g. constants.signerAddresses[x].url or constants.signerAddresses[x].urlApi */
     return (
-      'https://www.factsigner.com/facts/id/{signerAddr}/{factHash}?accept_terms_of_service=current'
-        .replace('{signerAddr}', addHexPrefix(signerAddr.toLowerCase()))
-        .replace('{factHash}', addHexPrefix(factHash.toLowerCase()))
-    );
-  }
-
-  function getFactsignerUrlApi(signerAddr, factHash){
-    return (
-      'https://www.factsigner.com/api_v1/facts/id/{signerAddr}/{factHash}?accept_terms_of_service=current'
+      url
         .replace('{signerAddr}', addHexPrefix(signerAddr.toLowerCase()))
         .replace('{factHash}', addHexPrefix(factHash.toLowerCase()))
     );
@@ -297,11 +290,7 @@
     validateDataForMarketHash: validateDataForMarketHash,
     factHash: factHash,
     settlementHash: settlementHash,
-    getFactsignerUrl: getFactsignerUrl,
-    getFactsignerUrlApi: getFactsignerUrlApi,
-    weiToEthExponent: 18, // useful for parseFloatToBn()
-    signerAddresses: [
-      '0x49B6D897575b0769d45eBa7E2De60A16de5B8C13' // this is only the temporary key
-    ]
+    replaceUrl: replaceUrl,
+    weiToEthExponent: 18 // useful for parseFloatToBn()
   };
 }));

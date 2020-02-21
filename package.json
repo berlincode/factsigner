@@ -1,7 +1,7 @@
 {
   "name": "factsigner",
-  "version": "7.0.0",
-  "description": "Solidity factsigner.com helper functions and example ethereum contract",
+  "version": "7.0.1",
+  "description": "Provable signatures of real life events (javascript / solidity)",
   "homepage": "https://www.factsigner.com",
   "license": "MIT",
   "main": "js/index.js",
@@ -43,7 +43,7 @@
   "devDependencies": {
     "eslint": "^6.8.0",
     "ethlint": "^1.2.5",
-    "ganache-core": "2.10.1",
+    "ganache-core": "2.10.2",
     "mocha": "^7.0.0",
     "rimraf": "~3.0.0",
     "solc": "0.6.2"
