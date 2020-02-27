@@ -65,7 +65,7 @@ describe('Test contract and signature', function() {
   this.timeout(240*1000);
 
   const marketBaseData0 = {
-    underlyingString: 'BTC',
+    underlyingString: 'BTC\0USD',
     expirationDatetime: 1457676000,
     objectionPeriod: 3600,
     config: (
@@ -86,7 +86,7 @@ describe('Test contract and signature', function() {
   const valueBn0 = web3Utils.toBN('11318686387200000000'); // = 11.3186863872 * (10**18)
 
   const marketBaseData1 = {
-    underlyingString: 'Humans on the moon before 2030?',
+    underlyingString: 'Humans on the moon before 2030?\0',
     expirationDatetime: 1457676000,
     objectionPeriod: 3600,
     config: (

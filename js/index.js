@@ -26,7 +26,7 @@
 
   //function toFloat(bn, baseUnitExp) {
   //  // no flooring/rounding/ceiling - just stripping digits
-  //  var divisor = web3_utils.toBN('10').pow(web3Utils.toBN(baseUnitExp));
+  //  var divisor = web3Utils.toBN('10').pow(web3Utils.toBN(baseUnitExp));
   //  return bn.div(divisor).mul(unitMultiplier).toString();
   //}
   function parseFloatToBn(floatStr, baseUnitExp){
@@ -235,9 +235,19 @@
     // use marketBaseData.strikes as namedRanges with named marktes if marketBaseData.namedRanges is not set
     var namedRanges = marketBaseData.namedRanges || ((marketBaseData.config & constants.configMarketTypeIsStrikedMask)? []: marketBaseData.strikes);
 
-    var underlyingHash =  web3Utils.soliditySha3(
-      {t: 'string', v: marketBaseData.underlyingString}
-    );
+    // following does NOT work with trailing '\0'
+    //var underlyingHash =  web3Utils.soliditySha3(
+    //  {t: 'string', v: marketBaseData.underlyingString}
+    //);
+
+    // Split up string by '\0' (utf8ToHex() does not handle '\0'),
+    // call utf8ToHex(), join string with '00' 
+    // and call keccak256().
+    // This works with trailing '\0' (and strings that look like hex e.g. '0xff')
+    var underlyingParts = marketBaseData.underlyingString.split('\0');
+    var underlyingHex = '0x' + underlyingParts.map(function(part){return web3Utils.utf8ToHex(part).replace(/^0x/, '');}).join('00');
+    var underlyingHash = web3Utils.keccak256(underlyingHex);
+
     var args = [
       {t: 'bytes32', v: underlyingHash},
       {t: 'uint40', v: marketBaseData.expirationDatetime},
@@ -285,6 +295,25 @@
     namedRangeToString: function(x){
       return hexToString('0x' + web3Utils.toBN(x).toTwos(8*constants.NAMED_RANGE_MAX_BYTES).toString(16));
     },
+    underlyingStringToUnderlyingParts: function(underlyingString){
+      var list = underlyingString.split('\0');
+      return {
+        'name': list[0], // e.g. "BTC"
+        'unit': list[1], // e.g.  "USD"
+        'marketplace': list[2], // e.g. "bitfinex" exchage
+        'provider': list[3] // e.g. api-provider "dia"
+      };
+    },
+    underlyingSimple: function(underlyingParts){ // TODO rename
+      var name = underlyingParts.name;
+      if (
+        (typeof(underlyingParts.unit) !== 'undefined') &&
+        (underlyingParts.unit !== '')
+      )
+        name = name + '/' + underlyingParts.unit;
+      return name;
+    },
+  
     signFactsignerMessage: signFactsignerMessage,
     validateDataForFactHash: validateDataForFactHash,
     validateDataForMarketHash: validateDataForMarketHash,
