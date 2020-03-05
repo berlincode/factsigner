@@ -241,7 +241,7 @@
     //);
 
     // Split up string by '\0' (utf8ToHex() does not handle '\0'),
-    // call utf8ToHex(), join string with '00' 
+    // call utf8ToHex(), join string with '00'
     // and call keccak256().
     // This works with trailing '\0' (and strings that look like hex e.g. '0xff')
     var underlyingParts = marketBaseData.underlyingString.split('\0');
@@ -299,7 +299,7 @@
       var list = underlyingString.split('\0');
       return {
         'name': list[0], // e.g. "BTC"
-        'unit': list[1], // e.g.  "USD"
+        'unit': list[1], // e.g. "USD"
         'marketplace': list[2], // e.g. "bitfinex" exchage
         'provider': list[3] // e.g. api-provider "dia"
       };
@@ -313,7 +313,7 @@
         name = name + '/' + underlyingParts.unit;
       return name;
     },
-  
+
     signFactsignerMessage: signFactsignerMessage,
     validateDataForFactHash: validateDataForFactHash,
     validateDataForMarketHash: validateDataForMarketHash,
