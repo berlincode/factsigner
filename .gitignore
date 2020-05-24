@@ -1,5 +1,3 @@
-deprecated
-node_modules
-README.html
-npm-debug.log
-_*
+/node_modules/
+/README.html
+/npm-debug.log
