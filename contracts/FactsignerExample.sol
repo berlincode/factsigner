@@ -6,6 +6,7 @@
 
  Version 7.0.0
 
+ SPDX-License-Identifier: MIT
 
  MIT License
 
