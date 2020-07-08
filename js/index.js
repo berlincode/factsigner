@@ -17,7 +17,7 @@
   }else {
     // Global (browser)
     root.factsigner = factory(
-      root.web3.utils, // we expect that the whole Web3 was loaded an use only web3.utils from it
+      (new root.Web3()).utils, // we expect that the whole Web3 was loaded an use only web3.utils from it
       root.ethLibAccount, // we expect that the whole eth-lib was loaded an use only the eth-lib.accounts from it
       root.factsignerConstants
     );
