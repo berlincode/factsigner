@@ -184,13 +184,13 @@
       }
     } else {
       /* named market */
-      if (marketBaseData.ndigit !== constants.NDIGIT_DEFAULT) {
+      if (Number(marketBaseData.ndigit) !== constants.NDIGIT_DEFAULT) {
         throw new Error('"ndigit" must be ' + constants.NDIGIT_DEFAULT + ' for named markets');
       }
       if (marketBaseData.config & constants.configIntervalTypeIsUsedMask) {
         throw new Error('"intervalType" must be 0/false for named markets');
       }
-      if (marketBaseData.baseUnitExp !== constants.BASE_UNIT_EXP_DEFAULT) {
+      if (Number(marketBaseData.baseUnitExp) !== constants.BASE_UNIT_EXP_DEFAULT) {
         throw new Error('"baseUnitExp" must be ' + constants.BASE_UNIT_EXP_DEFAULT + ' for named markets');
       }
       if (namedRanges.length < 2) {
