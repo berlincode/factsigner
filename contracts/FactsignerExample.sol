@@ -68,7 +68,7 @@ contract FactsignerExample {
     constructor (
         BaseData memory marketBasedata,
         FactsignerVerify.Signature memory signature
-    ) public
+    )
     {
         bytes32 factHash = calcFactHash(marketBasedata);
 
