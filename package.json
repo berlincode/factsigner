@@ -13,7 +13,7 @@
     "compile": "rimraf js/FactsignerExample_sol_FactsignerExample* && cd contracts && solcjs --optimize --bin --abi FactsignerExample.sol FactsignerDefines.sol FactsignerVerify.sol --output-dir ../js",
     "ethlint": "solium --file contracts/FactsignerExample.sol",
     "test": "mocha",
-    "eslint": "eslint ./js/*.js ./test/*.js",
+    "eslint": "eslint *.cjs ./js/*.js ./test",
     "postinstall": "patch-package"
   },
   "files": [
