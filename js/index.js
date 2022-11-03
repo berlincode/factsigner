@@ -289,7 +289,7 @@
     toUnitString: toUnitString,
     toUnitStringExact: toUnitStringExact,
     stringToNamedRange: function(str){
-      var signed_int = new web3Utils.BN(stringToHex(str, constants.NAMED_RANGE_MAX_BYTES), 16).fromTwos(8*constants.NAMED_RANGE_MAX_BYTES);
+      var signed_int = new web3Utils.BN('0x'+stringToHex(str, constants.NAMED_RANGE_MAX_BYTES), 16).fromTwos(8*constants.NAMED_RANGE_MAX_BYTES);
       return signed_int.toString();
     },
     namedRangeToString: function(x){

@@ -1,6 +1,6 @@
 {
   "name": "factsigner",
-  "version": "7.1.7",
+  "version": "7.2.0",
   "description": "Provable signatures of real life events (javascript / solidity)",
   "homepage": "https://www.factsigner.com",
   "license": "MIT",
@@ -37,14 +37,14 @@
     "ethereum"
   ],
   "dependencies": {
-    "patch-package": "^6.2.1",
-    "web3": "~1.7.0"
+    "web3": "~1.8.0"
   },
   "devDependencies": {
     "eslint": "^8.4.0",
     "ethlint": "^1.2.5",
-    "ganache-core": "^2.11.0",
-    "mocha": "^9.0.0",
+    "ganache": "^7.5.0",
+    "mocha": "^10.0.0",
+    "patch-package": "^6.2.1",
     "shx": "^0.3.2",
     "solc": "~0.8.12"
   }
