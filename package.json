@@ -13,8 +13,7 @@
     "compile": "shx rm -rf js/FactsignerExample_sol_FactsignerExample* && cd contracts && solcjs --optimize --bin --abi FactsignerExample.sol FactsignerDefines.sol FactsignerVerify.sol --output-dir ../js",
     "ethlint": "solium --file contracts/FactsignerExample.sol",
     "test": "mocha",
-    "eslint": "eslint *.cjs ./js/*.js ./test",
-    "postinstall": "patch-package"
+    "eslint": "eslint *.cjs ./js/*.js ./test"
   },
   "files": [
     "contracts/FactsignerExample.sol",
@@ -44,7 +43,6 @@
     "ethlint": "^1.2.5",
     "ganache": "^7.5.0",
     "mocha": "^10.0.0",
-    "patch-package": "^6.2.1",
     "shx": "^0.3.2",
     "solc": "~0.8.12"
   }
